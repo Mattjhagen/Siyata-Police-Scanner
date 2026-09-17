@@ -1,0 +1,19 @@
+# Scanner Feed Configuration
+# Format: Name | Description | Stream URL
+# Lines starting with # are ignored
+#
+# To update feeds:
+# 1. Find your feed on broadcastify.com
+# 2. Get the MP3 stream URL (usually requires Premium)
+# 3. Update the URL below
+# 4. Push this file to device: adb push feeds.txt /sdcard/scanner_feeds.txt
+# 5. Restart scanner app
+#
+# Example working format:
+# Omaha Police | Omaha PD Northeast | http://your-stream-url-here.mp3
+
+Omaha Police Northeast | Omaha PD Northeast Precinct | https://broadcastify.cdnstream1.com/8466
+Douglas County Sheriff | Douglas County Sheriff Office | https://broadcastify.cdnstream1.com/26983
+Omaha Fire Department | Omaha Fire and Rescue | https://broadcastify.cdnstream1.com/3887
+Council Bluffs Public Safety | Council Bluffs Police and Fire | https://broadcastify.cdnstream1.com/9228
+Sarpy County Sheriff | Sarpy County Sheriff Department | https://broadcastify.cdnstream1.com/32102

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#000000"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⏸ STOPPED"
+        android:textSize="32sp"
+        android:textColor="#FF5722"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="#1A1A1A"/>
+
+    <TextView
+        android:id="@+id/feed_name_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Omaha Police NE"
+        android:textSize="36sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"/>
+
+    <TextView
+        android:id="@+id/feed_list_text"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="NEARBY FEEDS"
+        android:textSize="24sp"
+        android:textColor="#CCCCCC"
+        android:fontFamily="monospace"
+        android:paddingTop="16dp"
+        android:lineSpacingExtra="8dp"/>
+
+</LinearLayout>
