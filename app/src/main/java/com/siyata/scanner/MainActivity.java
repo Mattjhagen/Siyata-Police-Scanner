@@ -34,7 +34,9 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
     private PTTWebSocketClient pttClient;
     private PTTAudioManager pttAudioManager;
     private boolean isPTTMode = false;
+    private boolean isPTTConnected = false;
     private boolean isPTTTransmitting = false;
+    private long pttModeStartTime = 0;
 
     private TextView statusText;
     private TextView feedNameText;
@@ -299,11 +301,11 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         if (keyCode == KeyEvent.KEYCODE_F8 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
             keyCode == KeyEvent.KEYCODE_ENTER) {
 
-            // In PTT mode, F8 down starts transmission
-            if (isPTTMode && isPlaying) {
+            // In PTT mode and connected, F8 down starts transmission
+            if (isPTTConnected) {
                 startPTTTransmission();
             } else {
-                // Normal mode: toggle play/stop
+                // Normal mode or not connected yet: toggle play/stop
                 togglePlayStop();
             }
             return true;
@@ -314,9 +316,9 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        // In PTT mode, F8 release stops transmission
+        // In PTT mode and connected, F8 release stops transmission
         if ((keyCode == KeyEvent.KEYCODE_F8 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-             keyCode == KeyEvent.KEYCODE_ENTER) && isPTTMode && isPlaying) {
+             keyCode == KeyEvent.KEYCODE_ENTER) && isPTTConnected) {
             stopPTTTransmission();
             return true;
         }
@@ -325,7 +327,17 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
     }
 
     private void startPTTTransmission() {
-        if (isPTTTransmitting || pttAudioManager == null) return;
+        // Don't transmit if already transmitting, no audio manager, or not connected
+        if (isPTTTransmitting || pttAudioManager == null || !isPTTConnected) {
+            return;
+        }
+
+        // Prevent transmission in the same event frame as connection (500ms grace period)
+        long timeSinceConnect = System.currentTimeMillis() - pttModeStartTime;
+        if (timeSinceConnect < 500) {
+            Log.d(TAG, "PTT transmission blocked - too soon after connect (" + timeSinceConnect + "ms)");
+            return;
+        }
 
         Log.d(TAG, "PTT transmission started");
         isPTTTransmitting = true;
@@ -449,7 +461,9 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         }
 
         isPTTMode = true;
-        isPlaying = true;
+        isPTTConnected = false;  // Not connected yet
+        isPlaying = false;        // Don't set to true until connected
+        pttModeStartTime = System.currentTimeMillis();  // Track when we started connecting
 
         String wsUrl = feed.getWebSocketUrl();
         String channel = feed.getChannelId();
@@ -467,11 +481,11 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         pttClient.connect();
         pttClient.joinChannel(channel);
 
-        statusText.setText("📻 PTT READY");
-        statusText.setTextColor(0xFF2196F3); // Blue for PTT mode
+        statusText.setText("⏳ CONNECTING...");
+        statusText.setTextColor(0xFFFFA500); // Orange for connecting
         updateDisplay();
 
-        speak("Walkie talkie connected. Press to talk on channel " + channel);
+        speak("Connecting to walkie talkie channel " + channel);
     }
 
     private void stopPTTMode() {
@@ -489,6 +503,7 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         }
 
         isPTTMode = false;
+        isPTTConnected = false;
         isPTTTransmitting = false;
     }
 
@@ -543,8 +558,18 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
     public void onConnected() {
         runOnUiThread(() -> {
             Log.d(TAG, "PTT WebSocket connected");
+
+            // Now we're fully connected and ready
+            isPTTConnected = true;
+            isPlaying = true;
+
+            statusText.setText("📻 PTT READY");
+            statusText.setTextColor(0xFF2196F3); // Blue for ready
+            updateDisplay();
+
             RadioFeed feed = feeds.get(selectedIndex);
-            updateOLED(feed.getName(), "Connected");
+            updateOLED(feed.getName(), "Ready");
+            speak("Connected. Hold button to talk.");
         });
     }
 
