@@ -1,0 +1,9 @@
+# Scanner Feed Configuration
+# Format: Name | Description | Stream URL
+
+Test Music | SomaFM Electronic | http://ice1.somafm.com/groovesalad-128-mp3
+NOAA Omaha | NOAA Weather KIH61 | http://radio.weatherusa.net/NWR/KIH61.mp3
+Test Feed | Broadcastify Test | https://broadcastify.cdnstream1.com/41192
+Omaha Police | Omaha PD Northeast | https://broadcastify.cdnstream1.com/8466
+Douglas Sheriff | Douglas County SO | https://broadcastify.cdnstream1.com/26983
+Omaha Fire | Omaha Fire Rescue | https://broadcastify.cdnstream1.com/3887
