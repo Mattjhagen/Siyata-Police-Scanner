@@ -9,3 +9,10 @@ BBC World | BBC World Service | http://stream.live.vc.bbcmedia.co.uk/bbc_world_s
 # PTT Walkie-Talkie Channels (Two-Way!)
 PTT Channel 1 | Team Radio | ptt://100.103.3.35:8090/1
 PTT Channel 2 | Emergency Net | ptt://100.103.3.35:8090/2
+
+# AI Agents (Voice Assistants - Hold button to talk!)
+ChatGPT | General AI Assistant | ai://general
+Coding Agent | Software Development Help | ai://coding
+PacMac Agent | Operations Assistant | ai://pacmac
+Bible Study | Scripture & Theology | ai://bible
+Home Lab | Linux & Networking | ai://homelab

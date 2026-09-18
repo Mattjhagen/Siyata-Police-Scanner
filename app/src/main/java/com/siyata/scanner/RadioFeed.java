@@ -9,7 +9,8 @@ public class RadioFeed {
 
     public enum FeedType {
         STREAM,  // Traditional HTTP/HTTPS audio stream
-        PTT      // WebSocket PTT walkie-talkie channel
+        PTT,     // WebSocket PTT walkie-talkie channel
+        AI_AGENT // AI conversational agent
     }
 
     public RadioFeed(String name, String description, String streamUrl, boolean isFavorite) {
@@ -19,7 +20,9 @@ public class RadioFeed {
         this.isFavorite = isFavorite;
 
         // Detect feed type from URL scheme
-        if (streamUrl.startsWith("ptt://") || streamUrl.startsWith("ws://") || streamUrl.startsWith("wss://")) {
+        if (streamUrl.startsWith("ai://")) {
+            this.type = FeedType.AI_AGENT;
+        } else if (streamUrl.startsWith("ptt://") || streamUrl.startsWith("ws://") || streamUrl.startsWith("wss://")) {
             this.type = FeedType.PTT;
         } else {
             this.type = FeedType.STREAM;
@@ -48,6 +51,10 @@ public class RadioFeed {
 
     public boolean isPTT() {
         return type == FeedType.PTT;
+    }
+
+    public boolean isAIAgent() {
+        return type == FeedType.AI_AGENT;
     }
 
     // Extract channel ID from PTT URL
@@ -83,6 +90,15 @@ public class RadioFeed {
                 url = url.substring(0, lastSlash);
             }
             return url;
+        }
+        return null;
+    }
+
+    // Get AI agent ID from URL
+    // ai://agentId -> agentId
+    public String getAgentId() {
+        if (isAIAgent() && streamUrl.startsWith("ai://")) {
+            return streamUrl.substring(5); // Remove "ai://" prefix
         }
         return null;
     }
