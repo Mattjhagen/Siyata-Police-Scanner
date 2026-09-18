@@ -1,9 +1,17 @@
-# Scanner Feed Configuration
+# Public Radio Scanner Feed Configuration
 # Format: Name | Description | Stream URL
 
-Test Music | SomaFM Electronic | http://ice1.somafm.com/groovesalad-128-mp3
-NOAA Omaha | NOAA Weather KIH61 | http://radio.weatherusa.net/NWR/KIH61.mp3
-Test Feed | Broadcastify Test | https://broadcastify.cdnstream1.com/41192
-Omaha Police | Omaha PD Northeast | https://broadcastify.cdnstream1.com/8466
-Douglas Sheriff | Douglas County SO | https://broadcastify.cdnstream1.com/26983
-Omaha Fire | Omaha Fire Rescue | https://broadcastify.cdnstream1.com/3887
+# Fun Public Channels
+Test Music | SomaFM Groove | http://ice1.somafm.com/groovesalad-128-mp3
+NOAA Weather | Omaha Weather Radio | http://radio.weatherusa.net/NWR/KIH61.mp3
+
+# Public Walkie-Talkie Demo Channels (your server when live)
+# Demo WT | Public Walkie-Talkie | ws://your-server.com:8080/channel/1
+# Ham Radio | Amateur Radio Net | ws://your-server.com:8080/channel/2
+
+# Internet Radio Stations
+BBC World | BBC World Service | http://stream.live.vc.bbcmedia.co.uk/bbc_world_service
+NASA Audio | NASA TV Audio | https://ntd1.akamaized.net/hls/live/2013923/NASA-NTV1-HLS/master.m3u8
+
+# Add your own channels below:
+# Channel Name | Description | URL
