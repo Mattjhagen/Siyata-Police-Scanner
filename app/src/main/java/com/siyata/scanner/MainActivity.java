@@ -2,29 +2,40 @@ package com.siyata.scanner;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements PTTWebSocketClient.PTTConnectionListener {
     private static final String TAG = "SiyataScanner";
-    
+    private static final int PERMISSION_REQUEST_RECORD_AUDIO = 1;
+
     private List<RadioFeed> feeds;
     private int selectedIndex = 0;
     private MediaPlayer mediaPlayer;
     private boolean isPlaying = false;
     private TextToSpeech tts;
     private boolean ttsReady = false;
-    
+
+    // PTT walkie-talkie components
+    private PTTWebSocketClient pttClient;
+    private PTTAudioManager pttAudioManager;
+    private boolean isPTTMode = false;
+    private boolean isPTTTransmitting = false;
+
     private TextView statusText;
     private TextView feedNameText;
     private TextView feedListText;
@@ -66,6 +77,8 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         RotaryReceiver.mainActivity = null;
+
+        // Cleanup media player
         if (mediaPlayer != null) {
             if (isPlaying) {
                 mediaPlayer.stop();
@@ -73,6 +86,18 @@ public class MainActivity extends Activity {
             mediaPlayer.release();
             mediaPlayer = null;
         }
+
+        // Cleanup PTT
+        if (pttClient != null) {
+            pttClient.disconnect();
+            pttClient = null;
+        }
+        if (pttAudioManager != null) {
+            pttAudioManager.release();
+            pttAudioManager = null;
+        }
+
+        // Cleanup TTS
         if (tts != null) {
             tts.stop();
             tts.shutdown();
@@ -260,24 +285,66 @@ public class MainActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "Key: " + keyCode + " (" + KeyEvent.keyCodeToString(keyCode) + ")");
-        
+
         if (keyCode == KeyEvent.KEYCODE_F5 || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             nextFeed();
             return true;
         }
-        
+
         if (keyCode == KeyEvent.KEYCODE_F4 || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             previousFeed();
             return true;
         }
-        
-        if (keyCode == KeyEvent.KEYCODE_F8 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER || 
+
+        if (keyCode == KeyEvent.KEYCODE_F8 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
             keyCode == KeyEvent.KEYCODE_ENTER) {
-            togglePlayStop();
+
+            // In PTT mode, F8 down starts transmission
+            if (isPTTMode && isPlaying) {
+                startPTTTransmission();
+            } else {
+                // Normal mode: toggle play/stop
+                togglePlayStop();
+            }
             return true;
         }
-        
+
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        // In PTT mode, F8 release stops transmission
+        if ((keyCode == KeyEvent.KEYCODE_F8 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+             keyCode == KeyEvent.KEYCODE_ENTER) && isPTTMode && isPlaying) {
+            stopPTTTransmission();
+            return true;
+        }
+
+        return super.onKeyUp(keyCode, event);
+    }
+
+    private void startPTTTransmission() {
+        if (isPTTTransmitting || pttAudioManager == null) return;
+
+        Log.d(TAG, "PTT transmission started");
+        isPTTTransmitting = true;
+        pttAudioManager.startTransmission();
+
+        statusText.setText("📢 TRANSMITTING");
+        statusText.setTextColor(0xFFFF5722); // Red for transmitting
+        speak("Transmitting");
+    }
+
+    private void stopPTTTransmission() {
+        if (!isPTTTransmitting || pttAudioManager == null) return;
+
+        Log.d(TAG, "PTT transmission stopped");
+        isPTTTransmitting = false;
+        pttAudioManager.stopTransmission();
+
+        statusText.setText("📻 PTT READY");
+        statusText.setTextColor(0xFF2196F3); // Blue for ready
     }
     
     private void nextFeed() {
@@ -328,31 +395,128 @@ public class MainActivity extends Activity {
     }
     
     private void playSelected() {
+        RadioFeed feed = feeds.get(selectedIndex);
+
+        // Check if this is a PTT feed
+        if (feed.isPTT()) {
+            startPTTMode(feed);
+        } else {
+            startStreamMode(feed);
+        }
+    }
+
+    private void startStreamMode(RadioFeed feed) {
         try {
+            // Stop PTT if active
+            stopPTTMode();
+
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
             }
             mediaPlayer.reset();
-            
-            RadioFeed feed = feeds.get(selectedIndex);
-            Log.d(TAG, "Starting playback: " + feed.getStreamUrl());
-            
+
+            Log.d(TAG, "Starting stream playback: " + feed.getStreamUrl());
+
             mediaPlayer.setDataSource(feed.getStreamUrl());
             mediaPlayer.prepareAsync();
-            
+
             statusText.setText("⏳ LOADING...");
-            
+
         } catch (IOException e) {
             Log.e(TAG, "Error starting playback", e);
             speak("Cannot play feed");
             updateDisplay();
         }
     }
-    
-    private void stopPlayback() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+
+    private void startPTTMode(RadioFeed feed) {
+        // Check microphone permission first
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.RECORD_AUDIO},
+                        PERMISSION_REQUEST_RECORD_AUDIO);
+                speak("Microphone permission required for walkie talkie");
+                return;
+            }
+        }
+
+        // Stop media player if active
+        if (mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
             mediaPlayer.reset();
+        }
+
+        isPTTMode = true;
+        isPlaying = true;
+
+        String wsUrl = feed.getWebSocketUrl();
+        String channel = feed.getChannelId();
+
+        Log.d(TAG, "Starting PTT mode - URL: " + wsUrl + " Channel: " + channel);
+
+        // Create PTT client if needed
+        if (pttClient == null) {
+            String screenName = "Siyata" + (int)(Math.random() * 1000);
+            pttClient = new PTTWebSocketClient(wsUrl, screenName, this);
+            pttAudioManager = new PTTAudioManager(pttClient);
+        }
+
+        // Connect and join channel
+        pttClient.connect();
+        pttClient.joinChannel(channel);
+
+        statusText.setText("📻 PTT READY");
+        statusText.setTextColor(0xFF2196F3); // Blue for PTT mode
+        updateDisplay();
+
+        speak("Walkie talkie connected. Press to talk on channel " + channel);
+    }
+
+    private void stopPTTMode() {
+        if (!isPTTMode) return;
+
+        Log.d(TAG, "Stopping PTT mode");
+
+        if (pttAudioManager != null) {
+            pttAudioManager.stopTransmission();
+            pttAudioManager.stopPlayback();
+        }
+
+        if (pttClient != null) {
+            pttClient.disconnect();
+        }
+
+        isPTTMode = false;
+        isPTTTransmitting = false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_RECORD_AUDIO) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                RadioFeed feed = feeds.get(selectedIndex);
+                if (feed.isPTT()) {
+                    startPTTMode(feed);
+                }
+            } else {
+                Toast.makeText(this, "Microphone permission required for PTT", Toast.LENGTH_LONG).show();
+                speak("Permission denied");
+            }
+        }
+    }
+    
+    private void stopPlayback() {
+        if (isPTTMode) {
+            stopPTTMode();
+        } else {
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+                mediaPlayer.reset();
+            }
         }
         isPlaying = false;
         updateDisplay();
@@ -371,5 +535,81 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             Log.e(TAG, "OLED update failed: " + e.getMessage());
         }
+    }
+
+    // PTTConnectionListener interface implementation
+
+    @Override
+    public void onConnected() {
+        runOnUiThread(() -> {
+            Log.d(TAG, "PTT WebSocket connected");
+            RadioFeed feed = feeds.get(selectedIndex);
+            updateOLED(feed.getName(), "Connected");
+        });
+    }
+
+    @Override
+    public void onDisconnected() {
+        runOnUiThread(() -> {
+            Log.d(TAG, "PTT WebSocket disconnected");
+            if (isPTTMode) {
+                statusText.setText("❌ DISCONNECTED");
+                statusText.setTextColor(0xFFFF5722);
+                speak("Connection lost");
+            }
+        });
+    }
+
+    @Override
+    public void onAudioStart(String screenName) {
+        runOnUiThread(() -> {
+            Log.d(TAG, "Receiving audio from: " + screenName);
+
+            // Start playback if not already playing
+            if (pttAudioManager != null && !pttAudioManager.isPlaying()) {
+                pttAudioManager.startPlayback();
+            }
+
+            statusText.setText("📻 " + screenName + " TALKING");
+            statusText.setTextColor(0xFF4CAF50); // Green for receiving
+            speak(screenName + " is talking");
+
+            RadioFeed feed = feeds.get(selectedIndex);
+            updateOLED(feed.getName(), screenName + " talking");
+        });
+    }
+
+    @Override
+    public void onAudioData(byte[] pcmData) {
+        // Queue audio data for playback
+        if (pttAudioManager != null) {
+            pttAudioManager.queueAudioData(pcmData);
+        }
+    }
+
+    @Override
+    public void onAudioEnd() {
+        runOnUiThread(() -> {
+            Log.d(TAG, "Audio transmission ended");
+
+            if (pttAudioManager != null) {
+                pttAudioManager.stopPlayback();
+            }
+
+            statusText.setText("📻 PTT READY");
+            statusText.setTextColor(0xFF2196F3);
+
+            RadioFeed feed = feeds.get(selectedIndex);
+            updateOLED(feed.getName(), "Ready");
+        });
+    }
+
+    @Override
+    public void onError(String error) {
+        runOnUiThread(() -> {
+            Log.e(TAG, "PTT error: " + error);
+            Toast.makeText(this, "PTT Error: " + error, Toast.LENGTH_SHORT).show();
+            speak("Connection error");
+        });
     }
 }
