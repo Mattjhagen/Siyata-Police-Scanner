@@ -1,6 +1,6 @@
-# Siyata SD7 Police/Fire Scanner App
+# Siyata SD7 Public Radio Scanner
 
-Voice-controlled police and fire scanner application designed for the **Siyata SD7** rugged Android device with hardware rotary knob navigation.
+Voice-controlled public radio scanner application designed for the **Siyata SD7** rugged Android device with hardware rotary knob navigation. Listen to walkie-talkie channels, internet radio, weather broadcasts, and more!
 
 ## Features
 
@@ -16,8 +16,9 @@ Voice-controlled police and fire scanner application designed for the **Siyata S
 
 - **Live Audio Streaming**
   - HTTP/HTTPS audio stream support
-  - Broadcastify integration
+  - Internet radio integration
   - NOAA Weather Radio support
+  - WebSocket walkie-talkie (future)
   - Auto-reconnect on network changes
 
 - **Dynamic Feed Configuration**
@@ -34,13 +35,13 @@ Voice-controlled police and fire scanner application designed for the **Siyata S
 Create or edit `/sdcard/Android/data/com.siyata.scanner/files/scanner_feeds.txt`:
 
 ```
-# Scanner Feed Configuration
+# Public Radio Scanner Feed Configuration
 # Format: Name | Description | Stream URL
 
-Test Feed | Music test stream | http://ice1.somafm.com/groovesalad-128-mp3
-NOAA Omaha | NOAA Weather KIH61 | http://radio.weatherusa.net/NWR/KIH61.mp3
-Omaha Police | Omaha PD Northeast | https://broadcastify.cdnstream1.com/8466
-Douglas Sheriff | Douglas County SO | https://broadcastify.cdnstream1.com/26983
+Test Music | SomaFM Groove | http://ice1.somafm.com/groovesalad-128-mp3
+NOAA Weather | Omaha Weather Radio | http://radio.weatherusa.net/NWR/KIH61.mp3
+BBC World | BBC World Service | http://stream.live.vc.bbcmedia.co.uk/bbc_world_service
+NASA Audio | NASA TV Audio | https://ntd1.akamaized.net/hls/live/2013923/NASA-NTV1-HLS/master.m3u8
 ```
 
 ### Updating Feeds
