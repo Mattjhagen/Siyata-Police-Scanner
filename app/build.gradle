@@ -34,4 +34,9 @@ dependencies {
 
     // WebSocket support for PTT walkie-talkie integration
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // ExoPlayer for better HLS streaming with authentication
+    implementation 'androidx.media3:media3-exoplayer:1.2.0'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.2.0'
+    implementation 'androidx.media3:media3-datasource-okhttp:1.2.0'
 }

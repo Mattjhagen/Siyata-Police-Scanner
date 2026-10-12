@@ -6,6 +6,7 @@ public class RadioFeed {
     private String streamUrl;
     private boolean isFavorite;
     private FeedType type;
+    private Integer broadcastifyFeedId;  // For auto-refreshing Broadcastify URLs
 
     public enum FeedType {
         STREAM,  // Traditional HTTP/HTTPS audio stream
@@ -26,6 +27,19 @@ public class RadioFeed {
             this.type = FeedType.PTT;
         } else {
             this.type = FeedType.STREAM;
+        }
+
+        // Extract Broadcastify feed ID
+        if (streamUrl.startsWith("broadcastify://")) {
+            // Format: broadcastify://12345
+            try {
+                this.broadcastifyFeedId = Integer.parseInt(streamUrl.substring(15));
+            } catch (NumberFormatException e) {
+                this.broadcastifyFeedId = null;
+            }
+        } else {
+            // Try to extract from full URL
+            this.broadcastifyFeedId = BroadcastifyAuthManager.extractFeedId(streamUrl);
         }
     }
 
@@ -101,5 +115,20 @@ public class RadioFeed {
             return streamUrl.substring(5); // Remove "ai://" prefix
         }
         return null;
+    }
+
+    // Get Broadcastify feed ID
+    public Integer getBroadcastifyFeedId() {
+        return broadcastifyFeedId;
+    }
+
+    // Check if this is a Broadcastify feed
+    public boolean isBroadcastifyFeed() {
+        return broadcastifyFeedId != null;
+    }
+
+    // Update the stream URL (for refreshing expired tokens)
+    public void setStreamUrl(String newUrl) {
+        this.streamUrl = newUrl;
     }
 }

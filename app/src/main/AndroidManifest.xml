@@ -30,6 +30,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".FeedManagerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.Light.Dialog" />
+
         <receiver
             android:name=".BootReceiver"
             android:exported="true"
@@ -46,6 +52,15 @@
             android:enabled="true">
             <intent-filter>
                 <action android:name="com.br.intent.action.ROTARY_KNOB" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".CredentialsReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.siyata.scanner.SET_CREDENTIALS" />
             </intent-filter>
         </receiver>
     </application>

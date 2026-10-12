@@ -41,6 +41,9 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
     private TextView statusText;
     private TextView feedNameText;
     private TextView feedListText;
+
+    // Broadcastify authentication for auto-refreshing URLs
+    private BroadcastifyAuthManager authManager;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,16 +57,38 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         setupFeeds();
         setupMediaPlayer();
         setupTTS();
+        setupBroadcastifyAuth();
         updateDisplay();
 
         Log.d(TAG, "Voice Scanner initialized with " + feeds.size() + " feeds");
+    }
+
+    private void setupBroadcastifyAuth() {
+        authManager = new BroadcastifyAuthManager(this);
+
+        // Try to authenticate in background if credentials exist
+        new Thread(() -> {
+            if (authManager.authenticate()) {
+                Log.d(TAG, "Broadcastify authentication successful");
+            } else {
+                Log.d(TAG, "Broadcastify authentication not available (no credentials or login failed)");
+            }
+        }).start();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         RotaryReceiver.mainActivity = this;
-        if (ttsReady) {
+
+        // Reload feeds in case they were modified
+        setupFeeds();
+        if (selectedIndex >= feeds.size()) {
+            selectedIndex = 0;
+        }
+        updateDisplay();
+
+        if (ttsReady && feeds.size() > 0) {
             RadioFeed feed = feeds.get(selectedIndex);
             speak(feed.getName());
         }
@@ -357,6 +382,15 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         if (keyCode == KeyEvent.KEYCODE_F8 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
             keyCode == KeyEvent.KEYCODE_ENTER) {
 
+            // Long press detection
+            if (event.getRepeatCount() == 0) {
+                event.startTracking();
+            } else if (event.isLongPress() && !isPTTConnected && !isPlaying) {
+                // Long press when not playing opens feed manager
+                openFeedManager();
+                return true;
+            }
+
             // In PTT mode and connected, F8 down starts transmission
             if (isPTTConnected) {
                 startPTTTransmission();
@@ -368,6 +402,13 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void openFeedManager() {
+        Log.d(TAG, "Opening feed manager");
+        speak("Feed manager");
+        Intent intent = new Intent(this, FeedManagerActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -483,9 +524,46 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
             }
             mediaPlayer.reset();
 
-            Log.d(TAG, "Starting stream playback: " + feed.getStreamUrl());
+            String streamUrl = feed.getStreamUrl();
 
-            mediaPlayer.setDataSource(feed.getStreamUrl());
+            // If this is a Broadcastify feed, fetch fresh URL
+            if (feed.isBroadcastifyFeed()) {
+                statusText.setText("⏳ AUTHENTICATING...");
+                Log.d(TAG, "Fetching fresh Broadcastify URL for feed " + feed.getBroadcastifyFeedId());
+
+                // Fetch in background thread
+                new Thread(() -> {
+                    String freshUrl = authManager.getFreshStreamUrl(feed.getBroadcastifyFeedId());
+                    if (freshUrl != null) {
+                        feed.setStreamUrl(freshUrl);
+                        runOnUiThread(() -> startStreamPlayback(feed, freshUrl));
+                    } else {
+                        runOnUiThread(() -> {
+                            Log.e(TAG, "Failed to get fresh Broadcastify URL");
+                            speak("Authentication required. Check Broadcastify credentials.");
+                            statusText.setText("❌ AUTH FAILED");
+                            updateDisplay();
+                        });
+                    }
+                }).start();
+                return;
+            }
+
+            // Non-Broadcastify feed, play directly
+            startStreamPlayback(feed, streamUrl);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting playback", e);
+            speak("Cannot play feed");
+            updateDisplay();
+        }
+    }
+
+    private void startStreamPlayback(RadioFeed feed, String streamUrl) {
+        try {
+            Log.d(TAG, "Starting stream playback: " + streamUrl);
+
+            mediaPlayer.setDataSource(streamUrl);
             mediaPlayer.prepareAsync();
 
             statusText.setText("⏳ LOADING...");
