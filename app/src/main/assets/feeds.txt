@@ -12,8 +12,20 @@
 # Example working format:
 # Omaha Police | Omaha PD Northeast | http://your-stream-url-here.mp3
 
-Omaha Police Northeast | Omaha PD Northeast Precinct | https://broadcastify.cdnstream1.com/8466
-Douglas County Sheriff | Douglas County Sheriff Office | https://broadcastify.cdnstream1.com/26983
-Omaha Fire Department | Omaha Fire and Rescue | https://broadcastify.cdnstream1.com/3887
-Council Bluffs Public Safety | Council Bluffs Police and Fire | https://broadcastify.cdnstream1.com/9228
-Sarpy County Sheriff | Sarpy County Sheriff Department | https://broadcastify.cdnstream1.com/32102
+Omaha Police LIVE | Omaha Police Live Feed | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6Mzk3OTAsInQiOjE3OTE4Mzc0MzUsIm4iOiIzOGEyNWNlZmM4NTM4ZDEyIn0.wGtZNFvPtcXRcaJcnx-K8g/feed/39790/playlist.m3u8
+Douglas County ARES Repeaters | Amateur Radio Emergency Service | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Douglas County Rural Fire | Rural Fire Departments | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Douglas County Sheriff | Sheriff Office | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+N0NHB Repeater | 146.6550 MHz Ham Repeater | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+NOAA Weather Omaha | KIH61 Weather Radio | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Airport West | KOMA 135.875 Approach Departure | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Fire OFD | OFD Fire Channel | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Fire TAC3 | Tactical Channel 3 | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Fire Dispatch | Fire Department Dispatch | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Police Northeast | Northeast Precinct Dispatch | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Police Northwest | Northwest Precinct Dispatch | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Police Southeast | Southeast Precinct Dispatch | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Police Southwest | Southwest Precinct Dispatch | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Omaha Police West | West Precinct Dispatch | https://hls-o2.broadcastify.com/t/v1.eyJjIjoid2ViIiwidSI6MTIwNzc5OCwiZiI6NDczNjgsInQiOjE3OTE4MzgwMDcsIm4iOiJhMjBhNDVlOTgyMTM1ZjVkIn0.8dS8SxJCCwNRiAMWGZPTHQ/feed/47368/playlist.m3u8
+Nebraska State Radio | All Received Calls | https://calls.broadcastify.com/vlpd7o2r/1678/1791838366-52500.mp3
+Test Music | SomaFM Groove Salad | http://ice1.somafm.com/groovesalad-128-mp3

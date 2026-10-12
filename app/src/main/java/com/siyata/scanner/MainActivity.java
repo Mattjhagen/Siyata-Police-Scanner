@@ -116,6 +116,15 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
                 } else {
                     ttsReady = true;
                     tts.setSpeechRate(1.1f);
+                    tts.setPitch(1.0f);
+
+                    // Configure TTS to use music stream and max volume
+                    AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+                    if (audioManager != null) {
+                        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0);
+                    }
+
                     speak("Scanner ready. " + feeds.size() + " feeds available. Use rotary knob to navigate.");
                 }
             } else {
@@ -127,7 +136,54 @@ public class MainActivity extends Activity implements PTTWebSocketClient.PTTConn
     
     private void speak(String text) {
         if (ttsReady && tts != null) {
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+            // Temporarily duck (lower) media volume for TTS
+            boolean wasPlaying = false;
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                wasPlaying = true;
+                mediaPlayer.setVolume(0.1f, 0.1f);  // Lower to 10% during speech
+                Log.d(TAG, "Ducking media volume for TTS");
+            }
+
+            // Force audio to speaker for Siyata device
+            AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+            if (audioManager != null) {
+                audioManager.setMode(AudioManager.MODE_NORMAL);
+                audioManager.setSpeakerphoneOn(true);
+            }
+
+            // Use bundle to configure audio stream
+            Bundle params = new Bundle();
+            params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC);
+            params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f);
+
+            // Set up listener to restore volume after speech
+            final boolean finalWasPlaying = wasPlaying;
+            tts.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
+                @Override
+                public void onStart(String utteranceId) {
+                    Log.d(TAG, "TTS started: " + utteranceId);
+                }
+
+                @Override
+                public void onDone(String utteranceId) {
+                    // Restore media volume after speech
+                    if (finalWasPlaying && mediaPlayer != null) {
+                        mediaPlayer.setVolume(1.0f, 1.0f);
+                        Log.d(TAG, "Restored media volume after TTS");
+                    }
+                }
+
+                @Override
+                public void onError(String utteranceId) {
+                    // Restore media volume on error
+                    if (finalWasPlaying && mediaPlayer != null) {
+                        mediaPlayer.setVolume(1.0f, 1.0f);
+                    }
+                }
+            });
+
+            params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "tts_" + System.currentTimeMillis());
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "tts_" + System.currentTimeMillis());
             Log.d(TAG, "Speaking: " + text);
         }
     }
